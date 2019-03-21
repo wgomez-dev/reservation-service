@@ -11,12 +11,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.data.rest.core.annotation.RestResource;
 
+import io.lettuce.core.dynamic.annotation.Param;
+
 @SpringBootApplication
 public class ReservationServiceApplication {
+	
+	@Bean
+	CommandLineRunner commandLineRunner(ReservationRepository reservationRepository){
+		return strings ->{
+			Stream.of("Wil","Josh", "Pieter", "Tasha", "Alex", "Rick").
+				forEach(n -> reservationRepository.save(new Reservation(n)));
+		};
+	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(ReservationServiceApplication.class, args);
@@ -24,25 +35,11 @@ public class ReservationServiceApplication {
 
 }
 
-//Insert Data from command line
-class DummyDataCLR implements CommandLineRunner{
-
-	@Autowired
-	private ReservationRepository reservationRepository;
-	
-	@Override
-	public void run(String... args) throws Exception {
-		Stream.of("Wil","Josh", "Pieter", "Tasha", "Alex", "Rick").forEach(n -> this.reservationRepository.save(new Reservation(n)));
-	}
-	
-}
-
-
 //Data Access Layer
 @RepositoryRestResource
 interface ReservationRepository extends JpaRepository<Reservation, Long>{
 	@RestResource(path="by-name")
-	Collection<Reservation> findReservationName(String rn);
+	Collection<Reservation> findByReservationName(@Param("rn") String rn);
 }
 
 //Model Layer
@@ -51,15 +48,18 @@ class Reservation {
 	@Id
 	@GeneratedValue
 	private Long id;
-	private String reservatonName;
+	private String reservationName;
 	
 	@Override
 	public String toString() {
-		return "Reservation {id=" + id + ", reservatonName=" + reservatonName + "}";
+		return "Reservation {id=" + id + ", reservatonName=" + reservationName + "}";
+	}
+	
+	public Reservation() {
 	}
 	
 	public Reservation(String n) {
-		this.reservatonName = n;
+		this.reservationName = n;
 	}
 
 	public Long getId() {
@@ -69,10 +69,10 @@ class Reservation {
 		this.id = id;
 	}
 	public String getReservatonName() {
-		return reservatonName;
+		return reservationName;
 	}
 	public void setReservatonName(String reservatonName) {
-		this.reservatonName = reservatonName;
+		this.reservationName = reservatonName;
 	}
 	
 	
